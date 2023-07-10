@@ -13,9 +13,12 @@ class StudentController extends Controller
      */
     public function index()
     {
+        $students = Student::all();
+
         return view('welcome', [
             'message' => 'Halo!',
-            'name' => 'PhuongPEO'
+            'name' => 'PhuongPEO',
+            'students' => $students
         ]);
     }
 
