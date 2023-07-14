@@ -5,20 +5,35 @@ namespace App\Http\Controllers;
 use App\Models\Student;
 use App\Http\Requests\StoreStudentRequest;
 use App\Http\Requests\UpdateStudentRequest;
+use Illuminate\Http\Request;
 
 class StudentController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $students = Student::all();
+//        $students = Student::all()->orderBy('id', 'ASC')->limit(10);
 
-        return view('welcome', [
-            'message' => 'Halo!',
-            'name' => 'PhuongPEO',
-            'students' => $students
+        $students = Student::select('id', 'name', 'class', 'birthday')
+            ->where('id', '>=', 1)
+            ->where('id', '<=', 10)
+            ->orWhere('name', 'Jonathan Goyette')
+            ->orderBy('id', 'DESC')
+            ->get();
+
+        $getAnStudent = Student::where('id', 1)->first();
+
+        if($request->input() && $request->search) {
+            $students = Student::select('id', 'name', 'class', 'birthday')
+                ->where('name', 'LIKE', '%'.$request->search.'%')
+                ->get();
+        }
+
+        return view('student', [
+            'students' => $students,
+            'anStudent' => $getAnStudent
         ]);
     }
 
@@ -27,7 +42,7 @@ class StudentController extends Controller
      */
     public function create()
     {
-        //
+        return view('addStudent');
     }
 
     /**
@@ -35,15 +50,9 @@ class StudentController extends Controller
      */
     public function store(StoreStudentRequest $request)
     {
-        //
-    }
+        Student::create($request->validated());
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Student $student)
-    {
-        //
+        return redirect()->route('student.index');
     }
 
     /**
@@ -51,7 +60,8 @@ class StudentController extends Controller
      */
     public function edit(Student $student)
     {
-        //
+//        dd($student);
+        return view('editStudent', compact('student'));
     }
 
     /**
@@ -59,7 +69,15 @@ class StudentController extends Controller
      */
     public function update(UpdateStudentRequest $request, Student $student)
     {
-        //
+        $student['name'] = $request->name;
+        $student['birthday'] = $request->birthday;
+        $student['class'] = $request->class;
+
+        $student->save();
+
+        return redirect()
+            ->route('student.edit', $student->id)
+                ->with('success', "Cập nhật thành công!");
     }
 
     /**
@@ -67,6 +85,10 @@ class StudentController extends Controller
      */
     public function destroy(Student $student)
     {
-        //
+        if ($student) {
+            $student->delete();
+            return redirect()->route('student.index')->with('success', 'Student deleted successfully!');
+        }
+        return redirect()->route('student.index')->with('errors', 'Student not found!');
     }
 }

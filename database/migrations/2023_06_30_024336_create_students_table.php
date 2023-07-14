@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('name');
             $table->date('birthday');
             $table->string('class');
-            $table->boolean('status');
+            $table->boolean('status')->default(1);
             $table->timestamps();
         });
     }
